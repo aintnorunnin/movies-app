@@ -1,12 +1,14 @@
 import React, { useCallback, useEffect, useState } from "react";
 
+import AddMovieForm from "./components/AddMovieForm";
 import MovieModel from "./models/movie";
 import MoviesList from "./components/MoviesList";
 import "./App.css";
 
 const INITIAL_MOVIES: MovieModel[] = [];
 
-const STAR_WARS_API_URL = "https://swapi.dev/api/films/";
+const FIREBASE_MOVIE_API =
+  "https://react-movies-app-2966b-default-rtdb.firebaseio.com/movies.json";
 
 const App = () => {
   const [movies, setMovies] = useState(INITIAL_MOVIES);
@@ -16,9 +18,10 @@ const App = () => {
   const fetchMovies = useCallback(async () => {
     setLoading(true);
     try {
-      const jsonResponse = await fetch(STAR_WARS_API_URL);
+      const jsonResponse = await fetch(FIREBASE_MOVIE_API);
       if (!jsonResponse.ok)
         throw new Error("An error occurred while retrieving data.");
+      console.log(jsonResponse);
       const dataObj = await jsonResponse.json();
       setMovies(convertJSONMoviesToMovieModels(dataObj.results));
     } catch (error) {
@@ -46,6 +49,9 @@ const App = () => {
   }, [fetchMovies]);
   return (
     <React.Fragment>
+      <section>
+        <AddMovieForm />
+      </section>
       <section>
         <button onClick={fetchMovies}>Fetch Movies</button>
       </section>
