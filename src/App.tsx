@@ -10,16 +10,35 @@ const STAR_WARS_API_URL = "https://swapi.dev/api/films/";
 
 const App = () => {
   const [movies, setMovies] = useState(INITIAL_MOVIES);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   async function fetchMovies() {
+    setLoading(true);
     try {
       const jsonResponse = await fetch(STAR_WARS_API_URL);
+      if (!jsonResponse.ok)
+        throw new Error("An error occurred while retrieving data.");
       const dataObj = await jsonResponse.json();
       setMovies(convertJSONMoviesToMovieModels(dataObj.results));
-    }catch(error) {
-      //In production we would do something more user friendly than log error
-      console.log(error)
+    } catch (error) {
+      const er = error as Error;
+      setError(er.message);
     }
+    setLoading(false);
+  }
+
+  let content = <p>No movies were found</p>;
+  if (error) {
+    content = <p>{error}</p>;
+  }
+
+  if (movies.length > 0) {
+    content = <MoviesList movies={movies} />;
+  }
+
+  if (loading) {
+    content = <p>Retrieving movies ... </p>;
   }
 
   return (
@@ -27,9 +46,7 @@ const App = () => {
       <section>
         <button onClick={fetchMovies}>Fetch Movies</button>
       </section>
-      <section>
-        <MoviesList movies={movies} />
-      </section>
+      <section>{content}</section>
     </React.Fragment>
   );
 };
