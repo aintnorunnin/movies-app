@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
 import MovieModel from "./models/movie";
 import MoviesList from "./components/MoviesList";
@@ -13,7 +13,7 @@ const App = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  async function fetchMovies() {
+  const fetchMovies = useCallback(async () => {
     setLoading(true);
     try {
       const jsonResponse = await fetch(STAR_WARS_API_URL);
@@ -26,7 +26,7 @@ const App = () => {
       setError(er.message);
     }
     setLoading(false);
-  }
+  }, []);
 
   let content = <p>No movies were found</p>;
   if (error) {
@@ -41,6 +41,9 @@ const App = () => {
     content = <p>Retrieving movies ... </p>;
   }
 
+  useEffect(() => {
+    fetchMovies();
+  }, [fetchMovies]);
   return (
     <React.Fragment>
       <section>
