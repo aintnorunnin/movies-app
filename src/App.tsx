@@ -21,15 +21,25 @@ const App = () => {
       const jsonResponse = await fetch(FIREBASE_MOVIE_API);
       if (!jsonResponse.ok)
         throw new Error("An error occurred while retrieving data.");
-      console.log(jsonResponse);
       const dataObj = await jsonResponse.json();
-      setMovies(convertJSONMoviesToMovieModels(dataObj.results));
+      setMovies(convertJSONMoviesToMovieModels(dataObj));
     } catch (error) {
       const er = error as Error;
       setError(er.message);
     }
     setLoading(false);
   }, []);
+
+  async function addMovie(movie: MovieModel) {
+    const response = await fetch(FIREBASE_MOVIE_API, {
+      method: "POST",
+      body: JSON.stringify(movie),
+      headers: {
+        "Content-type": "application/json",
+      },
+    });
+    const data = await response.json();
+  }
 
   let content = <p>No movies were found</p>;
   if (error) {
@@ -50,7 +60,7 @@ const App = () => {
   return (
     <React.Fragment>
       <section>
-        <AddMovieForm />
+        <AddMovieForm addMovieHandler={addMovie} />
       </section>
       <section>
         <button onClick={fetchMovies}>Fetch Movies</button>
@@ -60,13 +70,14 @@ const App = () => {
   );
 };
 
-function convertJSONMoviesToMovieModels(jsonMovies: any[]): MovieModel[] {
+function convertJSONMoviesToMovieModels(dataObj : any): MovieModel[] {
+  const jsonMovies = Object.keys(dataObj).map(key => dataObj[key])
   return jsonMovies.map((movieObj) => {
     return new MovieModel(
-      Math.random(),
+      movieObj.id,
       movieObj.title,
-      movieObj.opening_crawl,
-      movieObj.release_date
+      movieObj.openingText,
+      movieObj.releaseDate,
     );
   });
 }
