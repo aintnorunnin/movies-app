@@ -14,8 +14,15 @@ const App = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const fetchMovies = useCallback(() => {
-    Movie_Service.getMovies(setLoading, setMovies, setError);
+  const fetchMovies = useCallback(async () => {
+    setLoading(true);
+    try {
+      setMovies(await Movie_Service.getMovies());
+    } catch (error) {
+      const er = error as Error;
+      setError(er.message);
+    }
+    setLoading(false);
   }, []);
 
   useEffect(() => {
