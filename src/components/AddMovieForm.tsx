@@ -1,29 +1,39 @@
 import React, { useRef } from "react";
 import MovieModel from "../models/movie";
 import classes from "./AddMovieForm.module.css";
+import useHttp from "../hooks/use-http";
 
-interface AddMovieFormProps {
-    addMovieHandler: (movie: MovieModel) => void;
-}
+const FIREBASE_MOVIE_API =
+  "https://react-movies-app-2966b-default-rtdb.firebaseio.com/movies.json";
 
-const AddMovieForm: React.FC<AddMovieFormProps> = (props) => {
+const AddMovieForm: React.FC = (props) => {
+  const { sendRequest: postNewFilm } = useHttp();
   const titleInput = useRef<HTMLInputElement>(null);
   const openingTextInput = useRef<HTMLTextAreaElement>(null);
   const releaseDateInput = useRef<HTMLInputElement>(null);
 
-  function submitHandler(event: React.FormEvent) {
+  const submitHandler = (event: React.FormEvent) => {
     event.preventDefault();
+
+    //Need some sort of input validation
     let title = titleInput.current!.value;
     let text = openingTextInput.current!.value;
     let releaseDate = releaseDateInput.current!.value;
 
-    //Need some sort of input validation
+    const requestConfig = {
+      method: "POST",
+      url: FIREBASE_MOVIE_API,
+      body: new MovieModel(Math.random(), title, text, releaseDate),
+      headers: {
+        "Content-type": "application/json",
+      },
+    };
 
-    props.addMovieHandler(new MovieModel(Math.random(), title, text, releaseDate));
-    titleInput.current!.value = ""
-    openingTextInput.current!.value = ""
-    releaseDateInput.current!.value = ""
-  }
+    postNewFilm(requestConfig, (data: any) => {});
+    titleInput.current!.value = "";
+    openingTextInput.current!.value = "";
+    releaseDateInput.current!.value = "";
+  };
 
   return (
     <form onSubmit={submitHandler} className={classes.control}>

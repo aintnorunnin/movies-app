@@ -5,9 +5,4 @@ import "./index.css";
 import App from "./App";
 import { MoviesContextProvider } from "./context/MoviesContext";
 
-ReactDOM.render(
-  <MoviesContextProvider>
-    <App />
-  </MoviesContextProvider>,
-  document.getElementById("root")
-);
+ReactDOM.render(<App />, document.getElementById("root"));
