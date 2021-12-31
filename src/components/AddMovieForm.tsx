@@ -3,10 +3,14 @@ import MovieModel from "../models/movie";
 import classes from "./AddMovieForm.module.css";
 import useHttp from "../hooks/use-http";
 
+interface AddMovieFormProps {
+  addNewMovie: (movie: MovieModel) => void;
+}
+
 const FIREBASE_MOVIE_API =
   "https://react-movies-app-2966b-default-rtdb.firebaseio.com/movies.json";
 
-const AddMovieForm: React.FC = (props) => {
+const AddMovieForm: React.FC<AddMovieFormProps> = (props) => {
   const { sendRequest: postNewFilm } = useHttp();
   const titleInput = useRef<HTMLInputElement>(null);
   const openingTextInput = useRef<HTMLTextAreaElement>(null);
@@ -19,17 +23,18 @@ const AddMovieForm: React.FC = (props) => {
     let title = titleInput.current!.value;
     let text = openingTextInput.current!.value;
     let releaseDate = releaseDateInput.current!.value;
-
+    const newMovie = new MovieModel(Math.random(), title, text, releaseDate);
+    
     const requestConfig = {
       method: "POST",
       url: FIREBASE_MOVIE_API,
-      body: new MovieModel(Math.random(), title, text, releaseDate),
+      body: newMovie,
       headers: {
         "Content-type": "application/json",
       },
     };
 
-    postNewFilm(requestConfig, (data: any) => {});
+    postNewFilm(requestConfig, props.addNewMovie.bind(null, newMovie));
     titleInput.current!.value = "";
     openingTextInput.current!.value = "";
     releaseDateInput.current!.value = "";

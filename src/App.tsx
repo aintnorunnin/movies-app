@@ -25,6 +25,10 @@ const App = () => {
     fetchMovies(requestConfig, convertAndSetMovies);
   }, []);
 
+  const addNewMovie = (movie: MovieModel) => {
+    setMovies(prevMovies => prevMovies.concat(movie))
+  }
+
   useEffect(() => {
     getMovies();
   }, [getMovies]);
@@ -44,7 +48,7 @@ const App = () => {
   return (
     <React.Fragment>
       <section>
-        <AddMovieForm />
+        <AddMovieForm addNewMovie={addNewMovie}/>
       </section>
       <section>
         <button onClick={getMovies}>Fetch Movies</button>

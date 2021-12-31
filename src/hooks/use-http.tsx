@@ -6,11 +6,13 @@ const useHttp = () => {
 
   const sendRequest = useCallback(async (requestConfig, setData) => {
     setLoading(true);
+    setError("");
     const config = {
       method: requestConfig.method ? requestConfig.method : "GET",
       body: requestConfig.body ? JSON.stringify(requestConfig.body) : null,
       headers: requestConfig.headers ? requestConfig.header : {},
     };
+
     try {
       const jsonResponse = await fetch(requestConfig.url, config);
       if (!jsonResponse.ok)
@@ -21,6 +23,7 @@ const useHttp = () => {
       const er = error as Error;
       setError(er.message);
     }
+
     setLoading(false);
   }, []);
 
