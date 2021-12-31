@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 
 import AddMovieForm from "./components/AddMovieForm";
 import MoviesList from "./components/MoviesList";
@@ -13,9 +13,11 @@ const FIREBASE_MOVIE_API =
 const App = () => {
   const [movies, setMovies] = useState(INITIAL_MOVIES_STATE);
   const { loading, error, sendRequest: fetchMovies } = useHttp();
-  const requestConfig = {
-    url: FIREBASE_MOVIE_API,
-  };
+  const requestConfig = useMemo(() => {
+    return {
+      url: FIREBASE_MOVIE_API,
+    };
+  }, []);
 
   const convertAndSetMovies = (jsonResponse: any) => {
     setMovies(convertJSONMoviesToMovieModels(jsonResponse));
@@ -23,11 +25,11 @@ const App = () => {
 
   const getMovies = useCallback(async () => {
     fetchMovies(requestConfig, convertAndSetMovies);
-  }, []);
+  }, [fetchMovies, requestConfig]);
 
   const addNewMovie = (movie: MovieModel) => {
-    setMovies(prevMovies => prevMovies.concat(movie))
-  }
+    setMovies((prevMovies) => [movie, ...prevMovies]);
+  };
 
   useEffect(() => {
     getMovies();
@@ -48,7 +50,7 @@ const App = () => {
   return (
     <React.Fragment>
       <section>
-        <AddMovieForm addNewMovie={addNewMovie}/>
+        <AddMovieForm addNewMovie={addNewMovie} />
       </section>
       <section>
         <button onClick={getMovies}>Fetch Movies</button>

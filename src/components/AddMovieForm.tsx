@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { ChangeEvent, useReducer } from "react";
 import MovieModel from "../models/movie";
 import classes from "./AddMovieForm.module.css";
 import useHttp from "../hooks/use-http";
@@ -10,21 +10,35 @@ interface AddMovieFormProps {
 const FIREBASE_MOVIE_API =
   "https://react-movies-app-2966b-default-rtdb.firebaseio.com/movies.json";
 
+const DEFAULT_FORM_STATE = {
+  title: "",
+  text: "",
+  releaseDate: "",
+};
+
 const AddMovieForm: React.FC<AddMovieFormProps> = (props) => {
   const { sendRequest: postNewFilm } = useHttp();
-  const titleInput = useRef<HTMLInputElement>(null);
-  const openingTextInput = useRef<HTMLTextAreaElement>(null);
-  const releaseDateInput = useRef<HTMLInputElement>(null);
+  const [formState, dispatchForm] = useReducer(formReducer, DEFAULT_FORM_STATE);
 
-  const submitHandler = (event: React.FormEvent) => {
+  function inputOnChange(event: ChangeEvent<HTMLInputElement>) {
+    dispatchForm({ type: event.target.id, value: event.target.value });
+  }
+
+  function textAreaOnChange(event: ChangeEvent<HTMLTextAreaElement>) {
+    dispatchForm({ type: event.target.id, value: event.target.value });
+  }
+
+  function submitHandler(event: React.FormEvent) {
     event.preventDefault();
 
     //Need some sort of input validation
-    let title = titleInput.current!.value;
-    let text = openingTextInput.current!.value;
-    let releaseDate = releaseDateInput.current!.value;
-    const newMovie = new MovieModel(Math.random(), title, text, releaseDate);
-    
+    const newMovie = new MovieModel(
+      Math.random(),
+      formState.title,
+      formState.text,
+      formState.releaseDate
+    );
+
     const requestConfig = {
       method: "POST",
       url: FIREBASE_MOVIE_API,
@@ -35,24 +49,61 @@ const AddMovieForm: React.FC<AddMovieFormProps> = (props) => {
     };
 
     postNewFilm(requestConfig, props.addNewMovie.bind(null, newMovie));
-    titleInput.current!.value = "";
-    openingTextInput.current!.value = "";
-    releaseDateInput.current!.value = "";
-  };
+    dispatchForm({ type: "Default" });
+  }
 
   return (
     <form onSubmit={submitHandler} className={classes.control}>
       <label htmlFor="title">Title</label>
-      <input id="title" type="text" ref={titleInput}></input>
+      <input
+        id="title"
+        type="text"
+        value={formState.title}
+        onChange={inputOnChange}
+      ></input>
 
-      <label htmlFor="opening_text">Opening Text</label>
-      <textarea id="opening_text" ref={openingTextInput}></textarea>
+      <label htmlFor="text">Opening Text</label>
+      <textarea
+        id="text"
+        value={formState.text}
+        onChange={textAreaOnChange}
+      ></textarea>
 
-      <label htmlFor="release_date">Release Date</label>
-      <input id="release_date" type="text" ref={releaseDateInput}></input>
+      <label htmlFor="releaseDate">Release Date</label>
+      <input
+        id="releaseDate"
+        type="text"
+        value={formState.releaseDate}
+        onChange={inputOnChange}
+      ></input>
       <button type="submit">Add Movie</button>
     </form>
   );
 };
+
+function formReducer(prevState: any, action: any) {
+  switch (action.type) {
+    case "title":
+      return {
+        ...prevState,
+        title: action.value,
+      };
+
+    case "text":
+      return {
+        ...prevState,
+        text: action.value,
+      };
+
+    case "releaseDate":
+      return {
+        ...prevState,
+        releaseDate: action.value,
+      };
+
+    default:
+      return DEFAULT_FORM_STATE;
+  }
+}
 
 export default AddMovieForm;
