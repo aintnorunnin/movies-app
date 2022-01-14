@@ -1,56 +1,41 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
-
+import React, { useEffect, useCallback, useMemo } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import AddMovieForm from "./components/AddMovieForm";
 import MoviesList from "./components/MoviesList";
-import useHttp from "./hooks/use-http";
 import "./App.css";
-import MovieModel from "./models/movie";
-
-const INITIAL_MOVIES_STATE: MovieModel[] = [];
-const FIREBASE_MOVIE_API =
-  "https://react-movies-app-2966b-default-rtdb.firebaseio.com/movies.json";
+import { MoviesState } from "./store/movie-slice";
+import { getMoviesData } from "./store/movie-actions";
 
 const App = () => {
-  const [movies, setMovies] = useState(INITIAL_MOVIES_STATE);
-  const { loading, error, sendRequest: fetchMovies } = useHttp();
-  const requestConfig = useMemo(() => {
-    return {
-      url: FIREBASE_MOVIE_API,
-    };
-  }, []);
-
-  const convertAndSetMovies = (jsonResponse: any) => {
-    setMovies(convertJSONMoviesToMovieModels(jsonResponse));
-  };
+  const moviesState: MoviesState = useSelector(
+    (storeState: any) => storeState.movies
+  );
+  const dispatch = useDispatch();
 
   const getMovies = useCallback(async () => {
-    fetchMovies(requestConfig, convertAndSetMovies);
-  }, [fetchMovies, requestConfig]);
-
-  const addNewMovie = (movie: MovieModel) => {
-    setMovies((prevMovies) => [movie, ...prevMovies]);
-  };
+    dispatch(getMoviesData());
+  }, [dispatch]);
 
   useEffect(() => {
     getMovies();
   }, [getMovies]);
 
   let content = <p>No movies were found</p>;
-  if (error) {
-    content = <p>{error}</p>;
+  if (moviesState.error) {
+    content = <p>{moviesState.error}</p>;
   }
 
-  if (movies.length > 0) {
-    content = <MoviesList movies={movies} />;
+  if (moviesState.movies.length > 0) {
+    content = <MoviesList movies={moviesState.movies} />;
   }
 
-  if (loading) {
+  if (moviesState.loading) {
     content = <p>Retrieving movies ... </p>;
   }
   return (
     <React.Fragment>
       <section>
-        <AddMovieForm addNewMovie={addNewMovie} />
+        <AddMovieForm />
       </section>
       <section>
         <button onClick={getMovies}>Fetch Movies</button>
@@ -59,17 +44,5 @@ const App = () => {
     </React.Fragment>
   );
 };
-
-function convertJSONMoviesToMovieModels(dataObj: any): MovieModel[] {
-  const jsonMovies = Object.keys(dataObj).map((key) => dataObj[key]);
-  return jsonMovies.map((movieObj) => {
-    return new MovieModel(
-      movieObj.id,
-      movieObj.title,
-      movieObj.openingText,
-      movieObj.releaseDate
-    );
-  });
-}
 
 export default App;
